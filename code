@@ -1,0 +1,55 @@
+import socket
+import sys
+from datetime import datetime
+from contextlib import closing
+
+
+def scan_ports(host, start_port=1, end_port=1024, timeout=0.001):
+    host_ip = socket.gethostbyname(host)
+    open_ports = []
+
+    print(f"Scanning {host} ({host_ip}) from port {start_port} to {end_port}")
+
+    for port in range(start_port, end_port + 1):
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+            sock.settimeout(timeout)
+            result = sock.connect_ex((host_ip, port))
+            if result == 0:
+                print(f"Port {port} is Open")
+                open_ports.append(port)
+
+    return open_ports
+
+
+def main():
+    try:
+        host = input("Please Enter Your Host: ")
+
+        with open("Port-Scanner.txt", "w") as file:
+            t1 = datetime.now()
+            print(f"Start Time: {t1}")
+            file.write(f"Start Time: {t1}\n")
+
+            open_ports = scan_ports(host)
+
+            t2 = datetime.now()
+            total_time = t2 - t1
+
+            print("\nScan Results:")
+            print(f"Open ports: {open_ports if open_ports else 'None'}")
+            print(f"Total open ports found: {len(open_ports)}")
+            print(f"End Time: {t2}")
+            print(f"Scan Duration: {total_time}")
+
+            file.write(f"\nOpen ports: {open_ports}\n")
+            file.write(f"Total open ports found: {len(open_ports)}\n")
+            file.write(f"End Time: {t2}\n")
+            file.write(f"Scan Duration: {total_time}\n")
+
+    except (socket.gaierror, socket.error) as e:
+        print(f"Error: {str(e)}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
